@@ -1,4 +1,3 @@
-<%-- Feedback and Review Management Module - Owned by IT25100494 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.noahstudio.model.*, com.noahstudio.util.FileHandler, java.util.*" %>
 <%
@@ -58,7 +57,13 @@
                             <% for(int i=0; i<r.getRating(); i++) { %>★<% } %>
                         </div>
                         <p style="font-style: italic; margin-bottom: 1rem; color: #fff;">"<%= r.getComment() %>"</p>
-                        <div style="font-size: 0.7rem; color:var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">— <%= r.getClientName() %> (Booking: <%= r.getBookingId() %>)</div>
+                        <% 
+                            String bookingInfo = "";
+                            if (r instanceof com.noahstudio.model.VerifiedReview) {
+                                bookingInfo = " (Booking: " + ((com.noahstudio.model.VerifiedReview)r).getBookingId() + ")";
+                            }
+                        %>
+                        <div style="font-size: 0.7rem; color:var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">— <%= r.getClientName() %><%= bookingInfo %></div>
                     </div>
                 <% } %>
             <% } %>

@@ -17,6 +17,28 @@ public class VideoPortfolioItem extends PortfolioItem {
         super(id, "Video", staffId, staffName, title, description, category, date, mediaUrl);
     }
 
+    @Override
+    public String getMediaUrl() {
+        String url = super.getMediaUrl();
+        if (url == null) return "";
+        
+        // Convert standard youtube links to embed links
+        if (url.contains("youtube.com/watch?v=")) {
+            url = url.replace("watch?v=", "embed/");
+            int ampersandIndex = url.indexOf("&");
+            if (ampersandIndex != -1) {
+                url = url.substring(0, ampersandIndex);
+            }
+        } else if (url.contains("youtu.be/")) {
+            url = url.replace("youtu.be/", "youtube.com/embed/");
+            int queryIndex = url.indexOf("?");
+            if (queryIndex != -1) {
+                url = url.substring(0, queryIndex);
+            }
+        }
+        return url;
+    }
+
     /**
      * Polymorphic implementation: Renders an iframe (e.g. YouTube/Vimeo embed) 
      * or a video tag for the gallery. We'll use a standardized iframe embed layout.

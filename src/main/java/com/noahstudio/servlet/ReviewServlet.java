@@ -1,4 +1,3 @@
-// Feedback and Review Management Module - Owned by IT25100494
 package com.noahstudio.servlet;
 
 import com.noahstudio.model.*;
@@ -35,6 +34,7 @@ public class ReviewServlet extends HttpServlet {
 
         if ("create".equals(action)) handleCreate(req, res);
         else if ("update".equals(action)) handleUpdate(req, res);
+        else if ("helpful".equals(action)) handleHelpful(req, res);
         else res.sendRedirect("index.jsp");
     }
 
@@ -140,5 +140,18 @@ public class ReviewServlet extends HttpServlet {
         } else {
             res.sendRedirect("review?action=list&success=Review has been deleted.");
         }
+    }
+
+    private void handleHelpful(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String id = req.getParameter("id");
+        String line = FileHandler.findById(REV_FILE, id);
+        if (line != null) {
+            Review r = Review.fromFileString(line);
+            if (r != null) {
+                r.incrementHelpfulCount();
+                FileHandler.updateById(REV_FILE, id, r.toFileString());
+            }
+        }
+        res.sendRedirect("review?action=list");
     }
 }

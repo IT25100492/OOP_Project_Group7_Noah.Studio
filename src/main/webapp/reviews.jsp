@@ -1,4 +1,3 @@
-<%-- Feedback and Review Management Module - Owned by IT25100494 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.noahstudio.model.*, java.util.*" %>
 <%
@@ -21,10 +20,15 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+        .reviews-hero {
+            padding: 10rem 0 6rem;
+            text-align: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), var(--bg-primary)), url('https://images.unsplash.com/photo-1600096194534-95cf5ece04cf?w=1600') center/cover;
+        }
         .reviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 2.5rem; padding: 0 5%; margin-bottom: 5rem; }
         .review-card { 
             position: relative; background: #0c0c0c; border: 1px solid rgba(255,255,255,0.05); 
-            padding: 3rem; border-radius: 12px; transition: 0.4s ease; height: fit-content;
+            padding: 3rem; border-radius: 12px; transition: 0.4s ease; display: flex; flex-direction: column;
         }
         .review-card:hover { border-color: rgba(168,130,255,0.3); transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         .quote-icon { position: absolute; top: 2rem; right: 2rem; color: var(--accent); opacity: 0.1; font-size: 2rem; }
@@ -57,11 +61,13 @@
     </ul>
 </nav>
 
-<div class="page-hero" style="padding-top: 10rem; padding-bottom: 5rem; text-align: center;">
-    <span class="section-tag">Social Proof</span>
-    <h1>Client <span style="color:var(--accent)">Love</span></h1>
-    <p style="color: var(--text-muted); max-width: 600px; margin: 1.5rem auto 0;">The stories of our journeys together, captured in their own words.</p>
-</div>
+<header class="reviews-hero">
+    <div class="container">
+        <span class="section-tag">Social Proof</span>
+        <h1 style="font-size: 4rem; margin-top: 1rem;">Client <span style="color:var(--accent)">Love</span></h1>
+        <p style="max-width: 600px; margin: 1.5rem auto 0; color: var(--text-muted);">The stories of our journeys together, captured in their own words.</p>
+    </div>
+</header>
 
 <section style="padding-top:0;">
     <div class="container" style="padding: 0 5%; margin-bottom: 4rem;">
@@ -80,11 +86,18 @@
                 <a href="booking?action=list&tab=reviews" class="btn-primary-sm">+ Share Your Story</a>
             <% } %>
         </div>
+        
+        <div style="display:flex; gap: 1rem; margin-top: 1rem;">
+            <button class="btn-secondary filter-btn active" data-filter="all" onclick="filterReviews(this, 'all')">All</button>
+            <button class="btn-secondary filter-btn" data-filter="5star" onclick="filterReviews(this, '5star')">5★ Only</button>
+            <button class="btn-secondary filter-btn" data-filter="recent" onclick="filterReviews(this, 'recent')">Most Recent</button>
+            <button class="btn-secondary filter-btn" data-filter="lowest" onclick="filterReviews(this, 'lowest')">Lowest Rated</button>
+        </div>
     </div>
 
-    <div class="reviews-grid">
+    <div class="reviews-grid" id="reviewsContainer">
         <% for (Review r : reviews) { %>
-            <div class="review-card">
+            <div class="review-card" data-rating="<%= r.getRating() %>" data-date="<%= r.getDate() %>">
                 <i class="fa fa-quote-right quote-icon"></i>
                 <div class="star-rating">
                     <% for(int i=1; i<=5; i++) { %>
@@ -96,12 +109,25 @@
                     "<%= r.getComment() %>"
                 </p>
 
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div class="client-info">
-                        <h4><%= r.getClientName() %></h4>
-                        <span><%= r.getDate() %></span>
+                <div style="margin-top: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div class="client-info">
+                            <h4><%= r.getClientName() %></h4>
+                            <span><%= r.getDate() %></span>
+                        </div>
+                        <%= r.renderBadgeHTML() %>
                     </div>
-                    <%= r.renderBadgeHTML() %>
+                    
+                    <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+                        <form action="review" method="post" style="display:inline;">
+                        <input type="hidden" name="action" value="helpful">
+                        <input type="hidden" name="id" value="<%= r.getId() %>">
+                        <button type="submit" class="btn-icon" style="font-size: 0.75rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 100px; border: 1px solid rgba(255,255,255,0.1);">
+                            <i class="fa fa-thumbs-up" style="color: var(--accent); margin-right: 0.3rem;"></i> 
+                            Helpful (<%= r.getHelpfulCount() %>)
+                        </button>
+                    </form>
+                </div>
                 </div>
             </div>
         <% } %>
@@ -113,6 +139,38 @@
         <% } %>
     </div>
 </section>
+
+<script>
+function filterReviews(btn, filterType) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const container = document.getElementById('reviewsContainer');
+    const cards = Array.from(container.getElementsByClassName('review-card'));
+    
+    // Reset display
+    cards.forEach(card => card.style.display = 'block');
+    
+    if (filterType === '5star') {
+        cards.forEach(card => {
+            if (parseInt(card.getAttribute('data-rating')) !== 5) {
+                card.style.display = 'none';
+            }
+        });
+    } else if (filterType === 'recent') {
+        cards.sort((a, b) => new Date(b.getAttribute('data-date')) - new Date(a.getAttribute('data-date')));
+        cards.forEach(card => container.appendChild(card)); // Reappend in sorted order
+    } else if (filterType === 'lowest') {
+        cards.sort((a, b) => parseInt(a.getAttribute('data-rating')) - parseInt(b.getAttribute('data-rating')));
+        cards.forEach(card => container.appendChild(card));
+    } else { // all
+        // Re-sort by something default if needed, here we just show all. 
+        // We could sort by ID or just leave as is.
+        // The display is already reset.
+    }
+}
+</script>
+
 
 </body>
 </html>

@@ -29,7 +29,7 @@
     <ul class="nav-links">
         <li><a href="index.jsp">Home</a></li>
         <li><a href="portfolio?action=list">Portfolio</a></li>
-        <li><a href="booking?action=list">My Bookings</a></li>
+        <li><a href="booking?action=list">My Dashboard</a></li>
         <li><a href="payment?action=list" class="active">Payments</a></li>
         <li><a href="user?action=logout" class="btn-nav">Logout</a></li>
     </ul>
@@ -81,7 +81,7 @@
         <div style="margin-top: 4rem; padding: 3rem; background: var(--bg-secondary); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
             <h3 style="margin-bottom: 1rem;">Need Help with a Payment?</h3>
             <p style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">Our accounts team is available to assist you with installments or refund requests.</p>
-            <a href="contact.jsp" class="btn-primary-sm">Contact Support</a>
+            <a href="index.jsp#contact" class="btn-primary-sm">Contact Support</a>
         </div>
     </div>
 </section>

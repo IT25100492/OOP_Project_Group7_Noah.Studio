@@ -29,6 +29,17 @@
             }
         }
     }
+    
+    int totalEntries = items.size();
+    int totalPhotos = 0;
+    int totalVideos = 0;
+    int totalFeatured = 0;
+
+    for(PortfolioItem item : items) {
+        if ("Photo".equalsIgnoreCase(item.getType())) totalPhotos++;
+        else if ("Video".equalsIgnoreCase(item.getType())) totalVideos++;
+        if (item.isFeatured()) totalFeatured++;
+    }
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -44,10 +55,11 @@
     <jsp:include page="admin-sidebar.jsp" />
 
     <main class="main-content">
-        <header class="content-header" style="display:flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem;">
+        <header class="content-header" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
             <div>
                 <span class="section-tag">Content Management</span>
                 <h1 style="font-size: 2.5rem; margin: 0;">Portfolio <span class="serif" style="color:var(--accent); text-transform:none;">Gallery</span></h1>
+                <p style="color:var(--text-muted); margin-top: 0.5rem;">Total Entries: <%= totalEntries %> | Photos: <%= totalPhotos %> | Videos: <%= totalVideos %> | Featured: <%= totalFeatured %></p>
             </div>
             <button class="btn-primary-sm" onclick="openModal('addPortfolioModal')">+ Add Entry</button>
         </header>
@@ -86,6 +98,13 @@
                             <td><%= item.getCategory() %></td>
                             <td class="text-right">
                                 <div class="action-group">
+                                    <% if ("admin".equals(role)) { %>
+                                    <form action="portfolio" method="post" style="display:inline;">
+                                        <input type="hidden" name="action" value="toggleFeatured">
+                                        <input type="hidden" name="id" value="<%= item.getId() %>">
+                                        <button type="submit" class="btn-icon" title="<%= item.isFeatured() ? "Unfeature" : "Mark as Featured" %>" style="<%= item.isFeatured() ? "color: var(--accent);" : "" %>"><i class="fa fa-star"></i></button>
+                                    </form>
+                                    <% } %>
                                     <button class="btn-icon" title="Edit Entry" 
                                             data-id="<%= item.getId() %>"
                                             data-type="<%= item.getType() %>"
@@ -94,13 +113,13 @@
                                             data-media="<%= item.getMediaUrl().replace("\"", "&quot;") %>"
                                             data-desc="<%= item.getDescription().replace("\"", "&quot;") %>"
                                             onclick="initEdit(this)">
-                                        <i class="fa fa-edit"></i>
+                                        <i class="fa fa-edit" style="color: red;"></i>
                                     </button>
                                     <form action="portfolio" method="post" style="display:inline;" onsubmit="return confirm('Delete this entry permanently?');">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="<%= item.getId() %>">
                                         <input type="hidden" name="redirect" value="portfolio-management.jsp">
-                                        <button type="submit" class="btn-icon btn-delete" title="Delete Entry"><i class="fa fa-trash"></i></button>
+                                        <button type="submit" class="btn-icon btn-delete" title="Delete Entry"><i class="fa fa-trash" style="color: white;"></i></button>
                                     </form>
                                 </div>
                             </td>
@@ -140,9 +159,10 @@
                     <label style="font-size:0.6rem; text-transform:uppercase; letter-spacing:1px; color:var(--accent); font-weight:800; margin-bottom:0.5rem; display:block;">Category</label>
                     <select name="category" class="form-control" style="background:#0f0f0f; border:1px solid #1a1a1a; color:#fff; padding:0.8rem; border-radius:10px; width:100%;" required>
                         <option value="Wedding">Wedding</option>
-                        <option value="Events">Events</option>
-                        <option value="Portrait">Portrait</option>
                         <option value="Corporate">Corporate</option>
+                        <option value="Birthday">Birthday</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Drone">Drone</option>
                     </select>
                 </div>
                 <div class="form-group" id="add-file-group" style="grid-column: span 2;">
@@ -191,9 +211,10 @@
                     <label style="font-size:0.6rem; text-transform:uppercase; letter-spacing:1px; color:var(--accent); font-weight:800; margin-bottom:0.5rem; display:block;">Category</label>
                     <select name="category" id="edit-category" class="form-control" style="background:#0f0f0f; border:1px solid #1a1a1a; color:#fff; padding:0.8rem; border-radius:10px; width:100%;" required>
                         <option value="Wedding">Wedding</option>
-                        <option value="Events">Events</option>
-                        <option value="Portrait">Portrait</option>
                         <option value="Corporate">Corporate</option>
+                        <option value="Birthday">Birthday</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Drone">Drone</option>
                     </select>
                 </div>
                 <div class="form-group" id="edit-file-group" style="grid-column: span 2;">

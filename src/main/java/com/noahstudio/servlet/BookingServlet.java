@@ -35,6 +35,7 @@ public class BookingServlet extends HttpServlet {
         String action = req.getParameter("action");
         if ("create".equals(action)) handleCreate(req, res);
         else if ("update".equals(action)) handleUpdate(req, res);
+        else if ("cancel".equals(action)) handleCancel(req, res);
         else res.sendRedirect(req.getContextPath() + "/booking.jsp");
     }
 
@@ -71,6 +72,17 @@ public class BookingServlet extends HttpServlet {
         }
         String id = FileHandler.generateId("BKG", BOOKINGS_FILE);
         Booking b = new Booking(id, clientId, clientName, packageId, packageName, eventDate, eventTime, eventLocation, eventType, clientContact, "Pending", "", LocalDate.now().toString(), "-");
+        
+        // Generate human-readable reference number
+        String refNum = "BK-" + LocalDate.now().getYear() + "-" + String.format("%04d", new Random().nextInt(10000));
+        if (id.startsWith("BKG")) {
+            try {
+                int num = Integer.parseInt(id.substring(3));
+                refNum = "BK-" + LocalDate.now().getYear() + "-" + String.format("%04d", num);
+            } catch (Exception ignored) {}
+        }
+        b.setReferenceNumber(refNum);
+        
         FileHandler.appendLine(BOOKINGS_FILE, b.toFileString());
         
         String redirect = req.getParameter("redirect");
@@ -143,6 +155,57 @@ public class BookingServlet extends HttpServlet {
             } else {
                 res.sendRedirect(req.getContextPath() + "/booking?action=list");
             }
+        }
+    }
+
+    private void handleCancel(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String id = req.getParameter("id");
+        String reason = req.getParameter("cancellationReason");
+        String line = FileHandler.findById(BOOKINGS_FILE, id);
+        
+        if (line != null) {
+            Booking b = Booking.fromFileString(line);
+            if (b != null) {
+                b.setStatus(Booking.STATUS_CANCELLED);
+                if (reason != null && !reason.trim().isEmpty()) {
+                    b.setCancellationReason(reason.trim());
+                }
+                
+                try {
+                    java.time.LocalDate eventDate = java.time.LocalDate.parse(b.getEventDate());
+                    java.time.LocalDate today = java.time.LocalDate.now();
+                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(today, eventDate);
+                    
+                    if (daysBetween >= 0 && daysBetween <= 3) {
+                        double pkgPrice = 0;
+                        String pkgLine = FileHandler.findById("packages.txt", b.getServicePackageId());
+                        if (pkgLine != null) {
+                            com.noahstudio.model.ServicePackage sp = com.noahstudio.model.ServicePackage.fromFileString(pkgLine);
+                            if (sp != null) pkgPrice = sp.getPrice();
+                        }
+                        
+                        if (pkgPrice > 0) {
+                            double fineAmount = pkgPrice * 0.20;
+                            String payId = FileHandler.generateId("PAY", "payments.txt");
+                            com.noahstudio.model.Payment finePay = new com.noahstudio.model.FullPayment(
+                                payId, b.getId(), b.getClientId(), b.getClientName(), fineAmount, 
+                                "Pending", com.noahstudio.model.Payment.STATUS_PENDING, 
+                                "-", "Late cancellation fine (20% of LKR " + String.format("%.0f", pkgPrice) + ")", "-"
+                            );
+                            FileHandler.appendLine("payments.txt", finePay.toFileString());
+                        }
+                    }
+                } catch (Exception e) {}
+                
+                FileHandler.updateById(BOOKINGS_FILE, id, b.toFileString());
+            }
+        }
+        
+        String redirect = req.getParameter("redirect");
+        if (redirect != null && !redirect.isEmpty()) {
+            res.sendRedirect(req.getContextPath() + "/" + redirect);
+        } else {
+            res.sendRedirect(req.getContextPath() + "/booking?action=list");
         }
     }
 

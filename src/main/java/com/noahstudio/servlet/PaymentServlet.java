@@ -97,6 +97,24 @@ public class PaymentServlet extends HttpServlet {
         double amount = 0;
         try { amount = Double.parseDouble(amountStr); } catch (Exception e) {}
 
+        String promoCode = req.getParameter("promoCode");
+        double discountPercent = 0;
+        if (promoCode != null && !promoCode.trim().isEmpty()) {
+            for (String line : FileHandler.readLines("discounts.txt")) {
+                String[] parts = line.split("\\|");
+                if (parts.length >= 2 && parts[0].equalsIgnoreCase(promoCode.trim())) {
+                    try { discountPercent = Double.parseDouble(parts[1]); } catch(Exception e){}
+                    break;
+                }
+            }
+        }
+        
+        if (discountPercent > 0) {
+            double discountAmount = amount * (discountPercent / 100.0);
+            amount = amount - discountAmount;
+            notes = notes + (notes.isEmpty() ? "" : " | ") + "Applied Promo Code: " + promoCode.trim() + " (-" + discountPercent + "%)";
+        }
+
         String id = FileHandler.generateId("PAY", PAY_FILE);
         Payment pay;
         

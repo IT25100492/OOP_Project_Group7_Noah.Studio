@@ -17,6 +17,8 @@ public abstract class PortfolioItem {
     private String category;     // e.g. Wedding, Corporate, Portrait
     private String date;         // yyyy-MM-dd
     private String mediaUrl;     // URL or file path to the image/video
+    private int views = 0;
+    private boolean featured = false;
 
     // ── Constructors ──────────────────────────────────────────────────────────
     public PortfolioItem() {}
@@ -69,13 +71,20 @@ public abstract class PortfolioItem {
     public String getMediaUrl() { return mediaUrl; }
     public void setMediaUrl(String mediaUrl) { this.mediaUrl = mediaUrl; }
 
+    public int getViews() { return views; }
+    public void setViews(int views) { this.views = views; }
+    public void incrementViews() { this.views++; }
+
+    public boolean isFeatured() { return featured; }
+    public void setFeatured(boolean featured) { this.featured = featured; }
+
     // ── File serialization ────────────────────────────────────────────────────
-    /** Format: id|type|staffId|staffName|title|description|category|date|mediaUrl */
+    /** Format: id|type|staffId|staffName|title|description|category|date|mediaUrl|views|featured */
     public String toFileString() {
         return id + "|" + type + "|" + staffId + "|" + staffName + "|" 
              + title.replace("|", "~") + "|" 
              + description.replace("|", "~") + "|" 
-             + category + "|" + date + "|" + mediaUrl;
+             + category + "|" + date + "|" + mediaUrl + "|" + views + "|" + featured;
     }
 
     /** 
@@ -105,6 +114,13 @@ public abstract class PortfolioItem {
         item.setCategory(p[6]);
         item.setDate(p[7]);
         item.setMediaUrl(p[8]);
+        
+        if (p.length > 9) {
+            try { item.setViews(Integer.parseInt(p[9])); } catch (Exception e) { item.setViews(0); }
+        }
+        if (p.length > 10) {
+            item.setFeatured(Boolean.parseBoolean(p[10]));
+        }
         
         return item;
     }

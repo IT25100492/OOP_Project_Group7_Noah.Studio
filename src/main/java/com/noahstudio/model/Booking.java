@@ -1,4 +1,3 @@
-// Event Booking Management Module - Owned by IT25100538
 package com.noahstudio.model;
 
 /**
@@ -28,6 +27,8 @@ public class Booking {
     private String notes;
     private String createdAt;       // yyyy-MM-dd
     private String staffId = "-";   // Assigned photographer/videographer
+    private String referenceNumber;
+    private String cancellationReason = "";
 
     // ── Constructors ──────────────────────────────────────────────────────────
     public Booking() {}
@@ -96,14 +97,22 @@ public class Booking {
     public String getStaffId()                 { return staffId; }
     public void   setStaffId(String v)         { this.staffId = v; }
 
+    public String getReferenceNumber()         { return referenceNumber; }
+    public void   setReferenceNumber(String v) { this.referenceNumber = v; }
+
+    public String getCancellationReason()      { return cancellationReason; }
+    public void   setCancellationReason(String v) { this.cancellationReason = v; }
+
     // ── File serialisation ────────────────────────────────────────────────────
-    /** Format: id|clientId|clientName|packageId|packageName|eventDate|eventTime|eventLocation|eventType|clientContact|status|notes|createdAt|staffId */
+    /** Format: id|clientId|clientName|packageId|packageName|eventDate|eventTime|eventLocation|eventType|clientContact|status|notes|createdAt|staffId|referenceNumber|cancellationReason */
     public String toFileString() {
         return id + "|" + clientId + "|" + clientName + "|"
              + packageId + "|" + packageName + "|" + eventDate + "|"
              + eventTime + "|" + eventLocation + "|" + eventType + "|"
              + clientContact + "|" + status + "|"
-             + notes.replace("|", "~") + "|" + createdAt + "|" + staffId;
+             + notes.replace("|", "~") + "|" + createdAt + "|" + staffId + "|"
+             + (referenceNumber != null ? referenceNumber : "") + "|"
+             + (cancellationReason != null ? cancellationReason.replace("|", "~") : "");
     }
 
     public static Booking fromFileString(String line) {
@@ -124,6 +133,8 @@ public class Booking {
         b.setNotes(p[11].replace("~", "|"));
         b.setCreatedAt(p[12]);
         if (p.length > 13) b.setStaffId(p[13]);
+        if (p.length > 14) b.setReferenceNumber(p[14]);
+        if (p.length > 15) b.setCancellationReason(p[15].replace("~", "|"));
         return b;
     }
 }

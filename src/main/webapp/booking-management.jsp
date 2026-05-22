@@ -60,15 +60,37 @@
 
     <!-- Main Content Area -->
     <main class="main-content">
-        <header class="content-header">
-            <div class="header-title">
-                <span class="section-tag">Reservations</span>
-                <h1>Booking <span class="text-accent">Management</span></h1>
-            </div>
-            <div class="header-meta">
-                Administrator Access • <%= new java.text.SimpleDateFormat("MMM dd, yyyy").format(new java.util.Date()) %>
-            </div>
+<%
+    int tTotal = bookings.size();
+    int tPending = 0, tConf = 0, tComp = 0, tCanc = 0;
+    java.util.Date todayDate = new java.util.Date();
+    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+    List<Booking> upcomingBookings = new ArrayList<>();
+    
+    for (Booking b : bookings) {
+        if ("Pending".equals(b.getStatus())) tPending++;
+        else if ("Confirmed".equals(b.getStatus())) tConf++;
+        else if ("Completed".equals(b.getStatus())) tComp++;
+        else if ("Cancelled".equals(b.getStatus())) tCanc++;
+        
+        try {
+            java.util.Date eDate = sdf.parse(b.getEventDate());
+            long diff = eDate.getTime() - todayDate.getTime();
+            long days = java.util.concurrent.TimeUnit.DAYS.convert(diff, java.util.concurrent.TimeUnit.MILLISECONDS);
+            if (days >= 0 && days <= 7 && ("Pending".equals(b.getStatus()) || "Confirmed".equals(b.getStatus()))) {
+                upcomingBookings.add(b);
+            }
+        } catch(Exception e) {}
+    }
+%>
+
+        <header class="content-header" style="margin-bottom: 3rem;">
+            <span class="section-tag">Reservations</span>
+            <h1 style="font-size: 2.5rem; margin: 0;">Booking <span class="serif" style="color:var(--accent); text-transform:none;">Management</span></h1>
+            <p style="color:var(--text-muted); margin-top: 0.5rem;">Administrator Access • <%= new java.text.SimpleDateFormat("MMM dd, yyyy").format(todayDate) %></p>
         </header>
+
+
 
         <div class="registry-controls mb-2">
             <div class="control-header">
@@ -118,10 +140,13 @@
                                 count++;
                     %>
                     <tr>
-                        <td class="text-accent font-bold"><%= b.getId() %></td>
+                        <td class="text-accent font-bold" title="<%= b.getId() %>"><%= b.getReferenceNumber() != null ? b.getReferenceNumber() : b.getId() %></td>
                         <td>
                             <div style="font-weight: 600;"><%= b.getClientName() %></div>
                             <div style="font-size: 0.65rem; color: var(--text-muted);"><%= b.getClientContact() %></div>
+                            <% if ("Cancelled".equals(b.getStatus()) && b.getCancellationReason() != null && !b.getCancellationReason().isEmpty()) { %>
+                                <div style="font-size: 0.65rem; color: var(--danger); margin-top: 0.3rem;" title="Cancellation Reason"><i class="fa fa-exclamation-circle"></i> <%= b.getCancellationReason() %></div>
+                            <% } %>
                         </td>
                         <td><%= b.getServicePackageName() %></td>
                         <td>
@@ -167,9 +192,9 @@
                                         data-type="<%= b.getEventType() %>"
                                         data-contact="<%= b.getClientContact().replace("\"", "&quot;") %>"
                                         onclick="initEditBooking(this)">
-                                    <i class="fa fa-edit"></i>
+                                    <i class="fa fa-edit" style="color: red;"></i>
                                 </button>
-                                <a href="booking?action=delete&id=<%= b.getId() %>&redirect=booking-management.jsp" class="btn-icon btn-delete" onclick="return confirm('Delete this booking permanently?')"><i class="fa fa-trash"></i></a>
+                                <a href="booking?action=delete&id=<%= b.getId() %>&redirect=booking-management.jsp" class="btn-icon btn-delete" onclick="return confirm('Delete this booking permanently?')"><i class="fa fa-trash" style="color: white;"></i></a>
                             </div>
                         </td>
                     </tr>
@@ -309,7 +334,7 @@
                 </div>
                 <div class="form-group">
                     <label>Event Date</label>
-                    <input type="date" name="eventDate" class="form-control" required>
+                    <input type="date" name="eventDate" class="form-control" min="<%= new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date()) %>" required>
                 </div>
                 <div class="form-group">
                     <label>Event Time</label>

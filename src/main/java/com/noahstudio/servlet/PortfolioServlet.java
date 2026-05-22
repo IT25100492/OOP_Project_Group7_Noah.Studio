@@ -44,6 +44,7 @@ public class PortfolioServlet extends HttpServlet {
         if (action == null) action = "list";
         switch (action) {
             case "delete": handleDelete(req, res); break;
+            case "view":   handleView(req, res); break;
             default:       handleList(req, res);
         }
     }
@@ -56,6 +57,7 @@ public class PortfolioServlet extends HttpServlet {
         if ("create".equals(action)) handleCreate(req, res);
         else if ("update".equals(action)) handleUpdate(req, res);
         else if ("delete".equals(action)) handleDelete(req, res);
+        else if ("toggleFeatured".equals(action)) handleToggleFeatured(req, res);
         else res.sendRedirect(req.getContextPath() + "/portfolio.jsp");
     }
 
@@ -206,6 +208,48 @@ public class PortfolioServlet extends HttpServlet {
                 res.sendRedirect(req.getContextPath() + "/portfolio.jsp");
             }
         }
+    }
+
+    // ── View (Increment Views) ───────────────────────────────────────────────
+    private void handleView(HttpServletRequest req, HttpServletResponse res)
+            throws IOException, ServletException {
+        String id = req.getParameter("id");
+        String line = FileHandler.findById(PORT_FILE, id);
+        
+        if (line != null) {
+            PortfolioItem item = PortfolioItem.fromFileString(line);
+            if (item != null) {
+                // Increment views
+                item.incrementViews();
+                FileHandler.updateById(PORT_FILE, id, item.toFileString());
+                
+                req.setAttribute("portfolioItem", item);
+                req.getRequestDispatcher("/portfolio-detail.jsp").forward(req, res);
+                return;
+            }
+        }
+        res.sendRedirect(req.getContextPath() + "/portfolio?action=list");
+    }
+
+    // ── Toggle Featured ──────────────────────────────────────────────────────
+    private void handleToggleFeatured(HttpServletRequest req, HttpServletResponse res)
+            throws IOException {
+        HttpSession session = req.getSession(false);
+        if (session == null || !"admin".equals(session.getAttribute("role"))) {
+            res.sendRedirect(req.getContextPath() + "/login.jsp");
+            return;
+        }
+
+        String id = req.getParameter("id");
+        String line = FileHandler.findById(PORT_FILE, id);
+        if (line != null) {
+            PortfolioItem item = PortfolioItem.fromFileString(line);
+            if (item != null) {
+                item.setFeatured(!item.isFeatured());
+                FileHandler.updateById(PORT_FILE, id, item.toFileString());
+            }
+        }
+        res.sendRedirect(req.getContextPath() + "/portfolio-management.jsp");
     }
 
     // ── File Upload Helper ───────────────────────────────────────────────────

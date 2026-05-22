@@ -1,4 +1,3 @@
-// Feedback and Review Management Module - Owned by IT25100494
 package com.noahstudio.model;
 
 import java.time.LocalDate;
@@ -12,6 +11,7 @@ public abstract class Review {
     protected String comment;
     protected String date;
     protected String status; // Pending, Approved, Hidden
+    protected int helpfulCount = 0;
 
     public static final String STATUS_PENDING = "Pending";
     public static final String STATUS_APPROVED = "Approved";
@@ -41,6 +41,9 @@ public abstract class Review {
     public String getDate() { return date; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public int getHelpfulCount() { return helpfulCount; }
+    public void setHelpfulCount(int helpfulCount) { this.helpfulCount = helpfulCount; }
+    public void incrementHelpfulCount() { this.helpfulCount++; }
 
     public abstract String getType();
     public abstract String renderBadgeHTML();
@@ -48,7 +51,7 @@ public abstract class Review {
     public String toFileString() {
         return String.join("|", 
             id, getType(), clientId, clientName, staffId, 
-            getExtraField(), String.valueOf(rating), comment, date, status
+            getExtraField(), String.valueOf(rating), comment, date, status, String.valueOf(helpfulCount)
         );
     }
 
@@ -69,11 +72,19 @@ public abstract class Review {
         String comment = parts[7];
         String date = parts[8];
         String status = parts[9];
-
-        if ("Verified".equals(type)) {
-            return new VerifiedReview(id, cId, cName, sId, extra, rating, comment, date, status);
-        } else {
-            return new GuestReview(id, cId, cName, sId, rating, comment, date, status);
+        
+        int helpful = 0;
+        if (parts.length > 10) {
+            try { helpful = Integer.parseInt(parts[10]); } catch (Exception e) {}
         }
+
+        Review rev;
+        if ("Verified".equals(type)) {
+            rev = new VerifiedReview(id, cId, cName, sId, extra, rating, comment, date, status);
+        } else {
+            rev = new GuestReview(id, cId, cName, sId, rating, comment, date, status);
+        }
+        rev.setHelpfulCount(helpful);
+        return rev;
     }
 }

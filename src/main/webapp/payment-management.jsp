@@ -77,7 +77,7 @@
                         </td>
                         <td class="text-right">
                             <div class="action-group">
-                                <a href="payment?action=invoice&id=<%= p.getId() %>" class="btn-icon" title="View Digital Receipt"><i class="fa fa-file-invoice"></i></a>
+                                <button type="button" class="btn-icon" title="Print Invoice" onclick="printInvoice('<%= p.getId() %>')"><i class="fa fa-print"></i></button>
                                 <button class="btn-icon" title="Edit Record" 
                                         data-id="<%= p.getId() %>"
                                         data-amount="<%= p.getAmount() %>"
@@ -87,9 +87,9 @@
                                         data-type="<%= (p instanceof PartialPayment) ? "Partial" : "Full" %>"
                                         data-balance="<%= (p instanceof PartialPayment) ? ((PartialPayment)p).getBalanceDue() : "0" %>"
                                         onclick="initEditPayment(this)">
-                                    <i class="fa fa-edit"></i>
+                                    <i class="fa fa-edit" style="color: red;"></i>
                                 </button>
-                                <a href="payment?action=delete&id=<%= p.getId() %>" class="btn-icon btn-delete" onclick="return confirm('Delete this payment record?')" title="Delete Record"><i class="fa fa-trash"></i></a>
+                                <a href="payment?action=delete&id=<%= p.getId() %>" class="btn-icon btn-delete" onclick="return confirm('Delete this payment record?')" title="Delete Record"><i class="fa fa-trash" style="color: white;"></i></a>
                             </div>
                         </td>
                     </tr>
@@ -180,6 +180,25 @@
         document.getElementById('editPaymentModal').style.display = 'flex';
     }
     function closeEditModal() { document.getElementById('editPaymentModal').style.display = 'none'; }
+</script>
+
+<script>
+    function printInvoice(id) {
+        let frame = document.getElementById('print-frame');
+        if (!frame) {
+            frame = document.createElement('iframe');
+            frame.id = 'print-frame';
+            frame.style.display = 'none';
+            document.body.appendChild(frame);
+        }
+        frame.src = 'payment?action=invoice&id=' + id;
+        frame.onload = function() {
+            setTimeout(function() {
+                frame.contentWindow.focus();
+                frame.contentWindow.print();
+            }, 500); // 500ms delay to ensure fonts/CSS are fully rendered
+        };
+    }
 </script>
 
 </body>

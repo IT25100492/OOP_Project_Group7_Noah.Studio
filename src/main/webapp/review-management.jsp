@@ -1,4 +1,3 @@
-<%-- Feedback and Review Management Module - Owned by IT25100494 --%>
 <%@ page import="com.noahstudio.model.*, com.noahstudio.util.FileHandler, java.util.*" %>
 <%
     List<Review> reviews = (List<Review>) request.getAttribute("reviews");
@@ -78,7 +77,7 @@
                                             data-status="<%= r.getStatus() %>"
                                             data-comment="<%= r.getComment().replace("\"", "&quot;") %>"
                                             onclick="initEditReview(this)">
-                                        <i class="fa fa-edit"></i>
+                                        <i class="fa fa-edit" style="color: red;"></i>
                                     </button>
                                     <% if (!Review.STATUS_APPROVED.equals(r.getStatus())) { %>
                                         <a href="review?action=moderate&status=Approved&id=<%= r.getId() %>" class="btn-icon" style="color: #4caf50;" title="Approve Review"><i class="fa fa-check"></i></a>
@@ -86,7 +85,7 @@
                                     <% if (!Review.STATUS_HIDDEN.equals(r.getStatus())) { %>
                                         <a href="review?action=moderate&status=Hidden&id=<%= r.getId() %>" class="btn-icon" style="color: #ff9800;" title="Hide Review"><i class="fa fa-eye-slash"></i></a>
                                     <% } %>
-                                    <a href="review?action=delete&id=<%= r.getId() %>" class="btn-icon btn-delete" onclick="return confirm('Delete this review forever?')" title="Delete Record"><i class="fa fa-trash"></i></a>
+                                    <a href="review?action=delete&id=<%= r.getId() %>" class="btn-icon btn-delete" onclick="return confirm('Delete this review forever?')" title="Delete Record"><i class="fa fa-trash" style="color: white;"></i></a>
                                 </div>
                             </td>
                         </tr>
