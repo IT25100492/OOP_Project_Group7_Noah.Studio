@@ -47,3 +47,7 @@ A complete Java JSP/Servlet web application built with MVC architecture and Obje
 * **Portfolio**: Grid gallery with category filtering.
 * **Payments**: Recording and tracking payment statuses.
 * **Reviews**: Star-rating system for client feedback.
+
+#Class Diagram
+<img width="8192" height="4788" alt="Class Diagram" src="https://github.com/user-attachments/assets/736a0a17-cbef-44b6-bee8-2439d67ce213" />
+
